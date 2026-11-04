@@ -4,6 +4,8 @@ from decimal import Decimal
 import pytest
 
 from load_data import (
+    SCHEMA_PATH,
+    TABLES,
     clean_comparison,
     clean_text,
     hospital_row,
@@ -124,3 +126,9 @@ def test_patient_survey_row_treats_not_applicable_as_none():
     assert row[6] == Decimal("76")
     assert row[8] is None
     assert row[9] == 1392
+
+
+@pytest.mark.parametrize("table_name", [table[0] for table in TABLES])
+def test_schema_enables_row_level_security(table_name):
+    schema = SCHEMA_PATH.read_text()
+    assert f"ALTER TABLE {table_name} ENABLE ROW LEVEL SECURITY;" in schema
