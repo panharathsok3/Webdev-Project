@@ -33,6 +33,8 @@ The tables:
 
 "Not Available" and "Not Applicable" are stored as NULL. When a value is missing, the footnote columns say why.
 
+Row Level Security is turned on for every table, so Supabase's public API can't read or change them. The backend connects as the table owner, so it is not affected.
+
 ## Run
 
 Start the API from the repo root:
