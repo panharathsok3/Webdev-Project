@@ -1,16 +1,15 @@
+from fastapi import FastAPI
 
-from fastapi import FastAPI, HTTPException
-from sqlalchemy import text
-from database import engine, get_hospitals
+from database import get_hospitals
 
 app = FastAPI()
 
 
 @app.get("/")
 def home():
-  return {"message": "Hospital API is running"}
+    return {"message": "Hospital API is running"}
 
 
 @app.get("/hospitals")
 def hospitals():
-  return get_hospitals()
+    return get_hospitals()
