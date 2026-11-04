@@ -43,6 +43,29 @@ uvicorn main:app --reload
 
 It runs at http://127.0.0.1:8000. The docs are at http://127.0.0.1:8000/docs.
 
+## Endpoints
+
+`GET /hospitals` lists hospitals, best rated first. Both filters are optional:
+
+- `state`: two-letter state code, like `ME`
+- `rating`: overall star rating from 1 to 5
+
+For example, the hospitals in Maine with a 5-star rating:
+
+```
+http://127.0.0.1:8000/hospitals?state=ME&rating=5
+```
+
+Hospitals with no rating have `overall_rating` set to null, and `rating_notes` says why in CMS's words.
+
+## The Maine question
+
+`maine_question.sql` has the SQL that answers "Which hospitals in Maine have a 5-star rating?" It also lists the Maine hospitals with no rating and the reason for each.
+
+```bash
+psql -U postgres -d hqe -f maine_question.sql
+```
+
 ## Tests
 
 ```bash
