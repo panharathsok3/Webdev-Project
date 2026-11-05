@@ -39,8 +39,56 @@ HOSPITALS_SQL = text("""
     ORDER BY h.overall_rating DESC NULLS LAST, h.name
 """)
 
+EMERGENCY_HOSPITAL_SQL = text("""
+        SELECT
+            name,
+            city,
+            state,
+            hospital_type,
+            emergency_services,
+            birthing_friendly,
+            overall_rating
+        FROM hospitals
+        WHERE state = :state
+          AND emergency_services = TRUE
+        ORDER BY overall_rating DESC NULLS LAST, name
+    """)
+
+HOSPITAL_READMISSION_SQL = text("""
+        SELECT
+            h.name,
+            h.city,
+            h.state,
+            u.measure_name,
+            u.score,
+            u.compared_to_national,
+            u.number_of_patients,
+            u.start_date,
+            u.end_date
+        FROM hospitals h
+        JOIN unplanned_visits u
+            ON h.facility_id = u.facility_id
+        WHERE h.state = :state
+          AND u.measure_id LIKE 'READM%'
+        ORDER BY h.name, u.measure_name
+    """)
+
 
 def get_hospitals(state=None, rating=None):
     with engine.connect() as connection:
         result = connection.execute(HOSPITALS_SQL, {"state": state, "rating": rating})
+        return [dict(row) for row in result.mappings()]
+
+
+def get_emergency_hospitals(state):
+    with engine.connect() as connection:
+        result = connection.execute(EMERGENCY_HOSPITAL_SQL, {"state": state})
+
+        return [dict(row) for row in result.mappings()]
+
+
+def get_hospital_readmissions(state):
+    with engine.connect() as connection:
+        result = connection.execute(HOSPITAL_READMISSION_SQL, {"state": state})
+
         return [dict(row) for row in result.mappings()]

@@ -65,3 +65,144 @@ def test_missing_database_url_gives_clear_error():
     )
     assert result.returncode != 0
     assert "DATABASE_URL is not set" in result.stderr
+
+
+# User Story 2: Emergency Services test
+@pytest.fixture
+def fake_get_emergency_hospitals(monkeypatch):
+    calls = []
+
+    def fake(state):
+        calls.append({"state": state})
+        return [
+            {
+                "name": "TEST EMERGENCY HOSPITAL",
+                "state": state,
+                "emergency_services": True,
+                "overall_rating": 5
+            }
+        ]
+
+    monkeypatch.setattr(
+        main,
+        "get_emergency_hospitals",
+        fake
+    )
+
+    return calls
+
+
+def test_emergency_hospitals_by_state(
+    fake_get_emergency_hospitals
+):
+    response = client.get(
+        "/hospitals/emergency",
+        params={"state": "CA"}
+    )
+
+    assert response.status_code == 200
+
+    assert fake_get_emergency_hospitals == [
+        {"state": "CA"}
+    ]
+
+    assert response.json()[0]["emergency_services"] is True
+
+
+def test_emergency_hospitals_default_state(
+    fake_get_emergency_hospitals
+):
+    response = client.get("/hospitals/emergency")
+
+    assert response.status_code == 200
+
+    assert fake_get_emergency_hospitals == [
+        {"state": "CA"}
+    ]
+
+
+@pytest.mark.parametrize(
+    "state",
+    ["California", "123", "C"]
+)
+def test_emergency_hospitals_rejects_bad_state(
+    fake_get_emergency_hospitals, state
+):
+    response = client.get(
+        "/hospitals/emergency",
+        params={"state": state}
+    )
+
+    assert response.status_code == 422
+    assert fake_get_emergency_hospitals == []
+
+
+# User Story 3: Readmissions test
+@pytest.fixture
+def fake_get_hospital_readmissions(monkeypatch):
+    calls = []
+
+    def fake(state):
+        calls.append({"state": state})
+        return [
+            {
+                "name": "TEST HOSPITAL",
+                "state": state,
+                "measure_name": "Readmission Rate",
+                "score": 12.5,
+                "compared_to_national": "Same as the National Rate"
+            }
+        ]
+
+    monkeypatch.setattr(
+        main,
+        "get_hospital_readmissions",
+        fake
+    )
+
+    return calls
+
+
+def test_readmissions_by_state(
+    fake_get_hospital_readmissions
+):
+    response = client.get(
+        "/hospitals/readmissions",
+        params={"state": "CA"}
+    )
+
+    assert response.status_code == 200
+
+    assert fake_get_hospital_readmissions == [
+        {"state": "CA"}
+    ]
+
+    assert response.json()[0]["measure_name"] == "Readmission Rate"
+
+
+def test_readmissions_default_state(
+    fake_get_hospital_readmissions
+):
+    response = client.get("/hospitals/readmissions")
+
+    assert response.status_code == 200
+
+    assert fake_get_hospital_readmissions == [
+        {"state": "CA"}
+    ]
+
+
+@pytest.mark.parametrize(
+    "state",
+    ["California", "123", "C"]
+)
+def test_readmissions_rejects_bad_state(
+    fake_get_hospital_readmissions, state
+):
+    response = client.get(
+        "/hospitals/readmissions",
+        params={"state": state}
+    )
+
+    assert response.status_code == 422
+    assert fake_get_hospital_readmissions == []
